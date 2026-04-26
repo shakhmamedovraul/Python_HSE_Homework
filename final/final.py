@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-# --- ШАГ 1: ЗАГРУЗКА ДАННЫХ ---
+# --- ШАГ 1: Загрузка данных ---
 try:
     with open('bankruptcy_messages.json', 'r', encoding='utf-8') as f:
         messages = json.load(f)
@@ -25,7 +25,7 @@ except FileNotFoundError as e:
 # Реестр организаций
 org_registry = {org['inn']: org for org in org_list}
 
-# --- ШАГ 2: ВАЛИДАЦИЯ ---
+# --- Шаг 2: Валидация ---
 valid_messages = []
 validation_errors = []
 error_stats = {}
@@ -68,7 +68,7 @@ for msg in messages:
             error_stats[err_type] = error_stats.get(err_type, 0) + 1
     else:
         org_info = org_registry[inn]
-        msg['org_name'] = org_info['name']  # ✅ исправлено
+        msg['org_name'] = org_info['name']
         msg['region'] = org_info['region']
         msg['date_published'] = parsed_date.strftime("%Y-%m-%d")
         valid_messages.append(msg)
@@ -78,14 +78,14 @@ print(f"Валидных сообщений: {len(valid_messages)}")
 print(f"Ошибок: {len(validation_errors)}")
 print(f"Статистика ошибок: {error_stats}")
 
-# --- ШАГ 3: ПРИОРИТЕТНЫЕ ДЕЛА ---
+# --- ШАГ 3: Приоритетные дела ---
 priority_set = set(priority_case_numbers)
 message_case_set = set([msg['case_number'] for msg in valid_messages if msg.get('case_number')])
 priority_found = priority_set & message_case_set
 
 print(f"Найдено приоритетных дел в текущей выгрузке: {len(priority_found)}")
 
-# --- ШАГ 3.1: ИЗВЛЕЧЕНИЕ СУММ ---
+# --- Шаг 3.1: Извлечение сумм ---
 def extract_amounts(text):
     if not text:
         return []
@@ -120,12 +120,12 @@ for msg in valid_messages:
 # проверка
 print(valid_messages[0]["amounts"])
 
-# ✅ дополнительная проверка (улучшение)
+# ✅ дополнительная проверка
 print("\nПример извлечённых сумм:")
 for msg in valid_messages[:3]:
     print(msg["amounts"])
 
-# --- ШАГ 3.2: АНАЛИТИКА ---
+# --- Шаг 3.2: Аналитика ---
 def normalize_amount(amount_str):
     if not amount_str:
         return 0
@@ -153,7 +153,7 @@ for msg in valid_messages:
     numeric_amounts = [normalize_amount(a) for a in amounts]
     msg["total_amount"] = sum(numeric_amounts)
 
-# общая сумма (✅ безопасный get)
+# общая сумма
 total_sum = sum(msg.get("total_amount", 0) for msg in valid_messages)
 
 print(f"\n📊 Общая сумма по всем сообщениям: {total_sum:,} руб.")
@@ -181,7 +181,7 @@ print("\n🏆 ТОП-5 дел по сумме:")
 for case in top_cases:
     print(f"{case.get('case_number')} | {case.get('total_amount'):,} руб. | {case.get('org_name')}")
 
-# финальный вывод (✅ усилен)
+# финальный вывод
 print("\n📌 Вывод:")
 print(f"Общая сумма задолженности: {total_sum:,} руб.")
 print("Наибольшая финансовая нагрузка сосредоточена в ограниченном числе дел.")
